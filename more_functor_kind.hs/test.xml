@@ -1,0 +1,19 @@
+
+
+
+<server>
+    <host>127.0.0.1</host>
+    <port>8080</port>
+</server>
+<database>
+    <type>postgres</type>
+    <host>localhost</host>
+    <port>5432</port>
+    <username>user</username>
+    <password>password</password>
+    <name>example_db</name>
+    <multi>
+        <2>cold</2>
+        <1>hot</1>
+    </multi>
+</database>

@@ -1,0 +1,12 @@
+
+-- rev [] = [] 
+-- rev (x:xs) = join (rev xs, [x])
+-- how long does join take?
+-- Ans O(n) 
+-- how long does your rev take to compute the reverse of a list
+-- Ans O(n^2) 
+-- because big-O of join is O(n) and join be taken O(n) 
+-- are you satisfied with the running time?
+-- Ans No  
+-- if not, what would you like to do to improve the efficiency?
+-- Ans try to join before rev 
