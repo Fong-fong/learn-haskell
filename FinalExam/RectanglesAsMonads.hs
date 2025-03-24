@@ -80,6 +80,7 @@ instance Applicative Rect where
 -- = Rect ( ($ a) u1 ) ( ($ a) u2 )
 -- =  Rect ($ a) ($ a) <*> Rect u1 u2 
 -- =  pure ($ a) <*> Rect u1 u2 
+-- = pure ($ a) <*> u
 
 
 
@@ -94,6 +95,7 @@ instance Monad Rect where
 -- = Rect a a >>= k 
 -- = Rect (w (k a)) (h (k a))
 -- known Rect (w (k a)) (h (k a)) = k a by definition data Rect a = Rect { w :: a, h :: a }
+-- k a = Rect ka1 ka2 = Rect (w (k a)) (h (k a))
 -- = k a
 
 
@@ -114,16 +116,46 @@ instance Monad Rect where
 -- proof :
 -- m >>= (\a -> f a >>= g) 
 -- = m >>= (\a -> f a >>= g)
--- let f a = Rect fa1 fa2
--- = m >>= (\a -> Rect fa1 fa2 >>= g)
--- = m >>= (\a -> Rect ( w ( g fa1) ) ( h ( g fa2)))
--- let m = Rect m1 m2
--- = Rect m1 m2 >>= (\a -> Rect ( w ( g fa1) ) ( h ( g fa2)))
+-- let f a = Rect (w (f a)) (h (f a))
+-- = m >>= (\a -> Rect (w (f a)) (h (f a)) >>= g)
+-- = m >>= (\a -> Rect ( w ( g (w (f a))) ) ( h ( g (h (f a)))))
+-- let m = Rect (w m) (h m)
+-- = Rect (w m) (h m) >>= (\a -> Rect ( w ( g (w (f a))))  ( h ( g (h (f a)))))
+-- = Rect ( w ( g (w (f (w m)))))  ( h ( g (h (f (h m))))))
+-- =  Rect (w (f (w m))) (h (f (h m))) >>= g
+-- =  (Rect (w (f (w m))) (h (f (h m)))) >>= g
+-- =  ((Rect (w m) (h m))>>= f) >>= g
+-- =  ( m >>= f) >>= g
+
+
+
 
 
 join :: Rect (Rect a) -> Rect a
-join ra = Rect (w (w ra ) ) (h ( h ra ))
+join (Rect x y) = Rect (w x ) (h y)
 
 (>=>) :: (a -> Rect b) -> (b -> Rect c) -> a -> Rect c
-(>=>) f g x = Rect ( w ( g ( w (f x))))  ( h ( g ( h (f x))))
+(>=>) f g = \x -> Rect ( w ( g ( w (f x))))  ( h ( g ( h (f x))))
 -- (>=>) f g x=  join $ fmap g (f x)
+
+
+-- f >=> g $ a = join $ fmap g (f a)
+-- proof: 
+-- join $ fmap g (f a)
+-- = join $ Rect  (g (w (f a))) (g (h (f a)))
+-- = join $ Rect  (g (w (f a))) (g (h (f a)))
+-- = Rect ( w ( g ( w (f a))))  ( h ( g ( h (f a))))
+-- = ( \x -> Rect ( w ( g ( w (f x))))  ( h ( g ( h (f x)))) )$ a
+-- = f >=> g $ a
+
+--   Rect x y >>= f = Rect (w (f x)) (h (f y))
+-- f >=> g = \x -> f x >>= g
+-- proof :
+-- \x -> f x >>= g
+-- = \x -> f x >>= g
+-- let f x = Rect (w (f x)) (h (f x))
+-- = \x -> Rect (w (f x)) (h (f x)) >>= g
+-- = \x -> Rect (w (g (w (f x)))) (h (g (h (f x))))
+-- = f >=> g
+
+
